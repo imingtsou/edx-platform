@@ -11,6 +11,7 @@ class @MarkdownEditingDescriptor extends XModule.Descriptor
   @selectTemplate: "[[#{gettext 'incorrect'}, (#{gettext 'correct'}), #{gettext 'incorrect'}]]\n"
   @headerTemplate: "#{gettext 'Header'}\n=====\n"
   @explanationTemplate: "[explanation]\n#{gettext 'Short explanation'}\n[explanation]\n"
+  @relatedvideoTemplate: "[rv]\n#{gettext 'rv'}\n[rv]\n"
 
   constructor: (element) ->
     @element = element
@@ -507,6 +508,13 @@ class @MarkdownEditingDescriptor extends XModule.Descriptor
       xml = xml.replace(/\[explanation\]\n?([^\]]*)\[\/?explanation\]/gmi, function(match, p1) {
           var selectString = '<solution>\n<div class="detailed-solution">\n' + gettext('Explanation') + '\n\n' + p1 + '\n</div>\n</solution>';
 
+          return selectString;
+      });
+
+      xml = xml.replace(/\[rv\]\n?([^\]]*)\[\/?rv\]/gmi, function(match, p) {
+          var selectString = '<rv>\n<div class="related-videos">\nKey Words\n\n';
+          selectString += p;
+          selectString += '\n</div>\n</rv>';
           return selectString;
       });
 
