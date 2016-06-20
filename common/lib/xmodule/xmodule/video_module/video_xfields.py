@@ -20,6 +20,13 @@ class VideoFields(object):
         scope=Scope.settings
     )
 
+    key_word = String(
+        help = _("Key word inputed by instructors, for url links."),
+        display_name = _("Key Word"),
+        default = "",
+        scope = Scope.settings
+    )
+
     saved_video_position = RelativeTime(
         help=_("Current position in the video."),
         scope=Scope.user_state,
