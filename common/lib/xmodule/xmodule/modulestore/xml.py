@@ -387,6 +387,12 @@ class XMLModuleStore(ModuleStoreReadBase):
         for course_dir in source_dirs:
             self.try_load_course(course_dir, course_ids, target_course_id)
 
+    def get_keyword_video(self):
+        return 1
+
+    def create_keyword_video(self):
+        return 1
+
     def try_load_course(self, course_dir, course_ids=None, target_course_id=None):
         '''
         Load a course, keeping track of errors as we go along. If course_ids is not None,

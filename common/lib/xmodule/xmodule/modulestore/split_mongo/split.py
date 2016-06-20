@@ -717,6 +717,21 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
         self.db_connection._drop_database(database, collections, connections)  # pylint: disable=protected-access
 
+    def get_keyword_video(self,key_word):
+        connection = self.db_connection.database.connection
+        db = connection.edxapp
+        pair = []
+        cnt = 0
+        for data in db.video.dictionary.find({"key_word":key_word}):
+            pair[0:0] = [str(data["display_name"]) + '$' + str(data["url"])]
+        return pair
+
+    def create_keyword_video(self, course_id, display_name, key_word, url):
+        connection = self.db_connection.database.connection
+        db = connection.edxapp
+        db.video.dictionary.insert({"course_id":str(course_id),"display_name":str(display_name),"key_word":str(key_word),"url":str(url)})
+        return str(db)
+
     def cache_items(self, system, base_block_ids, course_key, depth=0, lazy=True):
         """
         Handles caching of items once inheritance and any other one time

@@ -942,6 +942,14 @@ class ModuleStoreRead(ModuleStoreAssetBase):
         pass
 
     @abstractmethod
+    def get_keyword_video(self):
+        pass
+
+    @abstractmethod
+    def create_keyword_video(self):
+        pass
+
+    @abstractmethod
     def get_course(self, course_id, depth=0, **kwargs):
         '''
         Look for a specific course by its id (:class:`CourseKey`).

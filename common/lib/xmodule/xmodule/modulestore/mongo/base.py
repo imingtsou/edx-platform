@@ -598,6 +598,12 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         self._course_run_cache = {}
         self.signal_handler = signal_handler
 
+    def get_keyword_video(self):
+        return 1
+
+    def create_keyword_video(self):
+        return 1
+
     def close_connections(self):
         """
         Closes any open connections to the underlying database

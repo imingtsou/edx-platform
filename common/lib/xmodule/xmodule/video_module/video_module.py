@@ -443,6 +443,8 @@ class VideoDescriptor(VideoFields, VideoTranscriptsMixin, VideoStudioViewHandler
         That means that html5_sources are always in list of fields that were changed (`metadata` param in save_item).
         This should be fixed too.
         """
+        
+        self.runtime.modulestore.create_keyword_video('test',self.display_name,self.key_word,self.location)
         metadata_was_changed_by_user = old_metadata != own_metadata(self)
 
         # There is an edge case when old_metadata and own_metadata are same and we are importing transcript from youtube

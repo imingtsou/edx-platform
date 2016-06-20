@@ -367,6 +367,12 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._get_modulestore_for_courselike(course_key)
         return store.make_course_usage_key(course_key)
 
+    def get_keyword_video(self):
+        return 1
+
+    def create_keyword_video(self):
+        return 1
+
     @strip_key
     def get_course(self, course_key, depth=0, **kwargs):
         """
