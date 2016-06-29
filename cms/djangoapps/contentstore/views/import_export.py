@@ -48,7 +48,7 @@ from contentstore.utils import reverse_course_url, reverse_usage_url, reverse_li
 
 __all__ = [
     'import_handler', 'import_status_handler',
-    'export_handler',
+    'export_handler', 'playlist_handler',
 ]
 
 
@@ -511,6 +511,52 @@ def export_handler(request, course_key_string):
 
     elif 'text/html' in requested_format:
         return render_to_response('export.html', context)
+
+    else:
+        # Only HTML or x-tgz request formats are supported (no JSON).
+        return HttpResponse(status=406)
+
+@ensure_csrf_cookie
+@login_required
+@require_http_methods(("GET",))
+@ensure_valid_course_key
+def playlist_handler(request, course_key_string):
+    course_key = CourseKey.from_string(course_key_string)
+    export_url = reverse_course_url('playlist_handler', course_key)
+    if not has_course_author_access(request.user, course_key):
+        raise PermissionDenied()
+
+    if isinstance(course_key, LibraryLocator):
+        courselike_module = modulestore().get_library(course_key)
+        context = {
+            'context_library': courselike_module,
+            'courselike_home_url': reverse_library_url("library_handler", course_key),
+            'library': True
+        }
+    else:
+        courselike_module = modulestore().get_course(course_key)
+        if courselike_module is None:
+            raise Http404
+        context = {
+            'context_course': courselike_module,
+            'courselike_home_url': reverse_course_url("course_handler", course_key),
+            'library': False
+        }
+
+    context['export_url'] = export_url + '?_accept=application/x-tgz'
+
+    # an _accept URL parameter will be preferred over HTTP_ACCEPT in the header.
+    requested_format = request.GET.get('_accept', request.META.get('HTTP_ACCEPT', 'text/html'))
+
+    if 'application/x-tgz' in requested_format:
+        try:
+            tarball = create_export_tarball(courselike_module, course_key, context)
+        except SerializationError:
+            return render_to_response('playlist.html', context)
+        return send_tarball(tarball)
+
+    elif 'text/html' in requested_format:
+        return render_to_response('playlist.html', context)
 
     else:
         # Only HTML or x-tgz request formats are supported (no JSON).
