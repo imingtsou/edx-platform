@@ -1147,14 +1147,17 @@ class CapaMixin(CapaFields):
                 key_word.append(string_word[3:len(string_word)-4])
             for word in key_word:
                 test = self.runtime.modulestore.get_keyword_video(word)
-                string_insert += "<p>" + word + ":<br />"
+                string_insert += "<p>" + word + ": "
+		video_num = 1
                 for line in test:
                     subline = line.split("$")
                     coursestring = subline[1]
                     coursestring = coursestring[9:]
                     subcoursestring = coursestring.split("+")
                     coursestring = subcoursestring[0] + "+" + subcoursestring[1] + "+" + subcoursestring[2]
-                    string_insert += "<a href=\"http://cloudmooc2.soic.indiana.edu/courses/course-v1:" + coursestring + "/jump_to/" + subline[1] + "\">" + subline[0] + "</a>\n<br />"
+		    string_insert += "<input value=\"video" + str(video_num) + "\" type=\"button\" onClick=\"window.open('" + "http://cloudmooc2.soic.indiana.edu/courses/course-v1:" + coursestring + "/jump_to/" + subline[1] + "')\">"
+		    video_num += 1
+                    #string_insert += "<a href=\"http://cloudmooc2.soic.indiana.edu/courses/course-v1:" + coursestring + "/jump_to/" + subline[1] + "\">" + subline[0] + "</a>\n"
                 string_insert += "</p>"
             string_insert += "</div>\n</rv>"
             html = string1 + string_insert + string2
