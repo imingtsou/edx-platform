@@ -8,7 +8,11 @@ from xmodule.library_content_module import ANY_CAPA_TYPE_VALUE
 from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.exceptions import ItemNotFoundError
 from xmodule.capa_module import CapaDescriptor
+from xblock.fields import Scope, Boolean, String, Float, XBlockMixin, Dict, Integer, List
 
+import logging
+
+log = logging.getLogger(__name__)
 
 def normalize_key_for_search(library_key):
     """ Normalizes library key for use with search indexing """
@@ -107,6 +111,61 @@ class LibraryToolsService(object):
         else:
             return [key for key in library.children if self._filter_child(key, capa_type)]
 
+    def _display_name_filter(self, library, display_name):
+        """ Filters library children by capa type"""
+        search_engine = SearchEngine.get_search_engine(index="library_index")
+        if search_engine:
+            log.warn("search engine found")
+            filter_clause = {
+                "library": unicode(normalize_key_for_search(library.location.library_key)),
+                # "content_type": CapaDescriptor.INDEX_CONTENT_TYPE,
+                # "display_name": display_name
+            }
+            search_result = search_engine.search(field_dictionary=filter_clause)
+            new_results = search_result.get('results', [])
+            results = []
+            for r in new_results:
+                v = self.deep_search(["display_name"], r)
+                if v['display_name'] == display_name:
+                    results.append(r)
+            return [LibraryUsageLocator.from_string(item['data']['id']) for item in results]
+        else:
+            log.warn("search engine NOT found")
+            #return [key for key in library.children if self._filter_child_name(key, display_name)]
+            results = []
+            for r in library.children:
+                p = self.store.get_item(r, 1)
+                v = {}
+                for field in p.fields.values():
+                    v[field.name] = field.read_json(p)
+                # v = p.get_explicitly_set_fields_by_scope(Scope.settings)
+                if v.get('display_name') == display_name:
+                    results.append(r)
+            return results
+
+    def deep_search(self, needles, haystack):
+        found = {}
+        if type(needles) != type([]):
+            needles = [needles]
+
+        if type(haystack) == type(dict()):
+            for needle in needles:
+                if needle in haystack.keys():
+                    found[needle] = haystack[needle]
+                elif len(haystack.keys()) > 0:
+                    for key in haystack.keys():
+                        result = self.deep_search(needle, haystack[key])
+                        if result:
+                            for k, v in result.items():
+                                found[k] = v
+        elif type(haystack) == type([]):
+            for node in haystack:
+                result = self.deep_search(needles, node)
+                if result:
+                    for k, v in result.items():
+                        found[k] = v
+        return found
+
     def _filter_child(self, usage_key, capa_type):
         """
         Filters children by CAPA problem type, if configured
@@ -117,6 +176,16 @@ class LibraryToolsService(object):
         descriptor = self.store.get_item(usage_key, depth=0)
         assert isinstance(descriptor, CapaDescriptor)
         return capa_type in descriptor.problem_types
+
+    def _filter_child_name(self, usage_key, capa_type):
+        """
+        Filters children by CAPA problem type, if configured
+        """
+        if usage_key.block_type != "problem":
+            return False
+
+        descriptor = self.store.get_item(usage_key, depth=0)
+        return capa_type in descriptor.display_name
 
     def can_use_library_content(self, block):
         """
@@ -157,7 +226,10 @@ class LibraryToolsService(object):
             # Apply simple filtering based on CAPA problem types:
             source_blocks.extend(self._problem_type_filter(library, dest_block.capa_type))
         else:
-            source_blocks.extend(library.children)
+            if dest_block.content_name and True:
+                source_blocks.extend(self._display_name_filter(library, dest_block.content_name))
+            else:
+                source_blocks.extend(library.children)
 
         with self.store.bulk_operations(dest_block.location.course_key):
             dest_block.source_library_version = unicode(library.location.library_key.version_guid)
