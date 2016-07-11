@@ -45,6 +45,9 @@ from contentstore.views.entrance_exam import (
 
 from contentstore.utils import reverse_course_url, reverse_usage_url, reverse_library_url
 
+from xmodule.library_content_module import LibraryContentDescriptor
+from xmodule.library_tools import LibraryToolsService
+from xmodule.modulestore.django import modulestore
 
 __all__ = [
     'import_handler', 'import_status_handler',
@@ -521,6 +524,23 @@ def export_handler(request, course_key_string):
 @require_http_methods(("GET",))
 @ensure_valid_course_key
 def playlist_handler(request, course_key_string):
+    
+    log.info("test from playlist")
+    store = modulestore()
+    all_libraries = []
+    libraries_name = []
+    for library in store.get_libraries():
+	#log.info(library)
+	all_libraries.append(library)
+    #log.info(all_libraries)
+    for library in all_libraries:
+	#log.info(library.location.library_key)
+	#log.info(library.display_name)
+	libraries_name.append(library.display_name)
+	#log.info(library.children)
+
+    log.info(libraries_name)
+
     course_key = CourseKey.from_string(course_key_string)
     export_url = reverse_course_url('playlist_handler', course_key)
     if not has_course_author_access(request.user, course_key):
@@ -544,6 +564,10 @@ def playlist_handler(request, course_key_string):
         }
 
     context['export_url'] = export_url + '?_accept=application/x-tgz'
+
+    context['libraries_display_name'] = libraries_name 
+
+    log.info(context)
 
     # an _accept URL parameter will be preferred over HTTP_ACCEPT in the header.
     requested_format = request.GET.get('_accept', request.META.get('HTTP_ACCEPT', 'text/html'))
