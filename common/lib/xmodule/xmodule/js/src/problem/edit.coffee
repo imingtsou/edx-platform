@@ -512,7 +512,7 @@ class @MarkdownEditingDescriptor extends XModule.Descriptor
       });
 
       xml = xml.replace(/\[rv\]\n?([^\]]*)\[\/?rv\]/gmi, function(match, p) {
-          var selectString = '<rv>\n<div class="related-videos">\nKey Words\n\n';
+          var selectString = '<rv>\n<div class="related-videos" style="display:none">\nKey Words\n\n';
           selectString += p;
           selectString += '\n</div>\n</rv>';
           return selectString;

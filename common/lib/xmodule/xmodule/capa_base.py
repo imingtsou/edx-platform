@@ -1139,27 +1139,24 @@ class CapaMixin(CapaFields):
                     pointer = i
                 if string[i:i+5] == '</rv>':
                     string2 = string[i+5:len(string)]
-                    string_process = string[pointer+52:i-9]
-            string_insert = "<rv>\n<div class=\"related-videos\">\n<p>Related Videos</p>"
+                    string_process = string[pointer+73:i-9]
+	    string_insert = "<rv>\n<div class=\"related-videos\">\n<p>Related Videos: "
             key_word_tmp = string_process.split("\n")
             key_word = []
             for string_word in key_word_tmp:
                 key_word.append(string_word[3:len(string_word)-4])
+	    video_num = 1
             for word in key_word:
                 test = self.runtime.modulestore.get_keyword_video(word)
-                string_insert += "<p>" + word + ": "
-		video_num = 1
                 for line in test:
                     subline = line.split("$")
                     coursestring = subline[1]
                     coursestring = coursestring[9:]
-                    subcoursestring = coursestring.split("+")
+		    subcoursestring = coursestring.split("+")
                     coursestring = subcoursestring[0] + "+" + subcoursestring[1] + "+" + subcoursestring[2]
 		    string_insert += "<input value=\"video" + str(video_num) + "\" type=\"button\" onClick=\"window.open('" + "http://cloudmooc2.soic.indiana.edu/courses/course-v1:" + coursestring + "/jump_to/" + subline[1] + "')\">"
 		    video_num += 1
-                    #string_insert += "<a href=\"http://cloudmooc2.soic.indiana.edu/courses/course-v1:" + coursestring + "/jump_to/" + subline[1] + "\">" + subline[0] + "</a>\n"
-                string_insert += "</p>"
-            string_insert += "</div>\n</rv>"
+            string_insert += "</p>\n</div>\n</rv>"
             html = string1 + string_insert + string2
 
         return {
