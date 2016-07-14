@@ -48,6 +48,7 @@ from contentstore.utils import reverse_course_url, reverse_usage_url, reverse_li
 from xmodule.library_content_module import LibraryContentDescriptor
 from xmodule.library_tools import LibraryToolsService
 from xmodule.modulestore.django import modulestore
+from opaque_keys.edx.locator import LibraryLocator, LibraryUsageLocator
 
 __all__ = [
     'import_handler', 'import_status_handler',
@@ -529,17 +530,19 @@ def playlist_handler(request, course_key_string):
     store = modulestore()
     all_libraries = []
     libraries_name = []
+    libraries_modules = []
     for library in store.get_libraries():
-	#log.info(library)
 	all_libraries.append(library)
-    #log.info(all_libraries)
     for library in all_libraries:
-	#log.info(library.location.library_key)
-	#log.info(library.display_name)
 	libraries_name.append(library.display_name)
 	#log.info(library.children)
+	modules = [library.display_name]
+	for children in library.children:
+	    modules.append(str(children))
+	    #log.info(children)
+	libraries_modules.append(modules)
 
-    log.info(libraries_name)
+    log.info(libraries_modules)
 
     course_key = CourseKey.from_string(course_key_string)
     export_url = reverse_course_url('playlist_handler', course_key)
@@ -565,7 +568,11 @@ def playlist_handler(request, course_key_string):
 
     context['export_url'] = export_url + '?_accept=application/x-tgz'
 
-    context['libraries_display_name'] = libraries_name 
+    name_string = libraries_name[0]
+    for i in range(1,len(libraries_name)):
+	name_string += "&" + libraries_name[i]
+    context['libraries_display_name'] = name_string
+    context['libraries_module'] = libraries_modules
 
     log.info(context)
 

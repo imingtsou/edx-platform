@@ -66,85 +66,99 @@ else:
           </div>
         %else:
           <h2 class="title">${_("About Exporting Courses")}</h2>
-          <div class="copy">
-              ## Translators: ".tar.gz" is a file extension, and should not be translated
-              <p>${_("You can export courses and edit them outside of {studio_name}. The exported file is a .tar.gz file (that is, a .tar file compressed with GNU Zip) that contains the course structure and content. You can also re-import courses that you've exported.").format(
-                studio_name=settings.STUDIO_SHORT_NAME
-              )}</p>
-              <p>${Text(_("{em_start}Caution:{em_end} When you export a course, information such as MATLAB API keys, LTI passports, annotation secret token strings, and annotation storage URLs are included in the exported data. If you share your exported files, you may also be sharing sensitive or license-specific information.")).format(
-                    em_start=HTML('<strong>'),
-                    em_end=HTML("</strong>")
-                  )}</p>
-          </div>
+	<div id="libraries_name" value="${libraries_display_name}">
+	</div>
+	<div id="libraries_module" value="${libraries_module}">
+	</div>
+	<p>
+		Please choose a library:
+		<select id="libraries">
+		</select>
+		<script>
+			var name = document.getElementById('libraries_name').attributes["value"].value;
+			var names = name.split("&");
+			var libraries = document.getElementById('libraries');
+			for (library in names) {
+				libraries.options.add(new Option(names[library],names[library]));
+			}
+			function getLibrary() {
+				var library = document.getElementById('libraries').value;
+				var libraries_module = document.getElementById('libraries_module').attributes["value"].value;
+				var modules = libraries_module.split("[");
+				var module_display = new Array();
+				for (var i = 2;i < modules.length;i++) {
+					var tmp_modules = modules[i].split("]");
+					module_display[i - 2] = tmp_modules[0];
+				}
+				var module_name = new Array();
+				for (var i = 0;i < module_display.length;i++) {
+					module_name[i] = module_display[i].split(",");
+				}
+				var libraries_name = new Array();
+				for (var i = 0;i < module_display.length;i++) {
+					var tmp_module_name = module_name[i][0].split("'");
+					libraries_name[i] = tmp_module_name[1];
+					module_name[i][0] = libraries_name[i]
+				}
+				var list = document.getElementById('module_list');
+				for (var i = 0;i < module_display.length;i++) {
+					if (library == module_name[i][0]) {
+						for (var j = 1;j < module_name[i].length;j++) {
+							var newbox = document.createElement('input');
+							newbox.type = 'checkbox';
+							newbox.name = 'module';
+							newbox.value = module_name[i][j];
+							list.appendChild(newbox);
+							list.appendChild(document.createTextNode(' ' + module_name[i][j]));
+							var br = document.createElement("br");
+							list.appendChild(br);
+						}
+						var newbutton = document.createElement('input');
+						newbutton.type = 'submit';
+						newbutton.name = 'submit_button';
+						newbutton.value = 'Add to List';
+						list.appendChild(newbutton);
+					}
+				}
+			}
+		</script>
+		<button type="button" onclick="getLibrary()">Show Modules</button>
+	</p>
+	<p>
+		Modules: <br />
+		<script>
+			function moduleSubmit() {
+				var list = document.getElementById('module_list');
+				var insert_list = document.getElementById('module_chosen');
+				for (var i = 0;i < list.length - 1;i++) {
+					if (list[i].checked == true) {
+						var newline = document.createElement('div');
+						newline.name = 'chosen_module';
+						newline.value = list[i].value;
+						insert_list.appendChild(newline);
+						insert_list.appendChild(document.createTextNode(newline.value));
+						var br = document.createElement("br");
+                                                insert_list.appendChild(br);
+					}
+				}
+				var newbutton = document.createElement('input');
+				newbutton.type = 'submit';
+				newbutton.name = 'submit_chosen_modules';
+				newbutton.value = 'Submit';
+				insert_list.appendChild(newbutton);
+			}
+		</script>
+		<form id="module_list" method="GET" action="javascript:moduleSubmit();">
+		</form>
+	</p>
+	<p>
+		Chosen modules: <br />
+		<form id="module_chosen">
+		</form>
+	</p>
         %endif
       </div>
-
-      <div class="export-controls">
-        <h2 class="title">
-            %if library:
-                ${_("Export My Library Content")}
-            %else:
-                ${_("Export My Course Content")}
-            %endif</h2>
-
-        <ul class="list-actions">
-          <li class="item-action">
-            <a class="action action-export action-primary" href="${export_url}">
-              <span class="icon fa fa-arrow-circle-o-down" aria-hidden="true"></span>
-              <span class="copy">
-                  %if library:
-                      ${_("Export Library Content")}
-                  %else:
-                      ${_("Export Course Content")}
-                  %endif</span>
-            </a>
-          </li>
-        </ul>
-      </div>
     </article>
-  %if library:
-    <aside class="content-supplementary" role="complementary">
-      <div class="bit">
-          <h3 class="title-3">${_("Why export a library?")}</h3>
-          <p>${_("You may want to edit the XML in your library directly, outside of {studio_name}. You may want to create a backup copy of your library. Or, you may want to create a copy of your library that you can later import into another library instance and customize.").format(
-          studio_name=settings.STUDIO_SHORT_NAME,
-          )}</p>
-      </div>
-
-      <div class="bit">
-          <h3 class="title-3">${_("Opening the downloaded file")}</h3>
-          ## Translators: ".tar.gz" is a file extension, and should not be translated
-          <p>${_("Use an archive program to extract the data from the .tar.gz file. Extracted data includes the library.xml file, as well as subfolders that contain library content.")}</p>
-      </div>
-      <div class="bit external-help">
-          <a href="${get_online_help_info(online_help_token())['doc_url']}" target="_blank" class="button external-help-button">${_("Learn more about exporting a library")}</a>
-      </div>
-    </aside>
-  %else:
-    <aside class="content-supplementary" role="complementary">
-      <div class="bit">
-        <h3 class="title-3">${_("Why export a course?")}</h3>
-        <p>${_("You may want to edit the XML in your course directly, outside of {studio_name}. You may want to create a backup copy of your course. Or, you may want to create a copy of your course that you can later import into another course instance and customize.").format(
-            studio_name=settings.STUDIO_SHORT_NAME,
-          )}</p>
-      </div>
-
-      <div class="bit">
-        <h3 class="title-3">${_("What content is exported?")}</h3>
-
-        <p>${_("The course content and structure (including sections, subsections, and units) are exported. Values from Advanced Settings, including MATLAB API keys and LTI passports, are also exported. Other data, including student data, grading information, discussion forum data, course settings, and course team information, is not exported.")}</p>
-      </div>
-
-      <div class="bit">
-        <h3 class="title-3">${_("Opening the downloaded file")}</h3>
-        ## Translators: ".tar.gz" is a file extension, and should not be translated
-        <p>${_("Use an archive program to extract the data from the .tar.gz file. Extracted data includes the course.xml file, as well as subfolders that contain course content.")}</p>
-      </div>
-      <div class="bit external-help">
-          <a href="${get_online_help_info(online_help_token())['doc_url']}" target="_blank" class="button external-help-button">${_("Learn more about exporting a course")}</a>
-      </div>
-    </aside>
-  %endif
   </section>
 </div>
 </%block>
