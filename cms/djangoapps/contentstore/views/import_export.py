@@ -526,7 +526,7 @@ def export_handler(request, course_key_string):
 @ensure_valid_course_key
 def playlist_handler(request, course_key_string):
     
-    log.info("test from playlist")
+    #log.info("test from playlist")
     store = modulestore()
     all_libraries = []
     libraries_name = []
@@ -542,7 +542,7 @@ def playlist_handler(request, course_key_string):
 	    #log.info(children)
 	libraries_modules.append(modules)
 
-    log.info(libraries_modules)
+    #log.info(libraries_modules)
 
     course_key = CourseKey.from_string(course_key_string)
     export_url = reverse_course_url('playlist_handler', course_key)
@@ -574,7 +574,7 @@ def playlist_handler(request, course_key_string):
     context['libraries_display_name'] = name_string
     context['libraries_module'] = libraries_modules
 
-    log.info(context)
+    #log.info(context)
 
     # an _accept URL parameter will be preferred over HTTP_ACCEPT in the header.
     requested_format = request.GET.get('_accept', request.META.get('HTTP_ACCEPT', 'text/html'))
