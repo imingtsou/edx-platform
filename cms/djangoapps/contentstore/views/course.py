@@ -100,6 +100,7 @@ from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError, DuplicateCourseError
 from xmodule.tabs import CourseTab, CourseTabList, InvalidTabsException
 
+from contentstore.views.helpers import create_xblock
 
 log = logging.getLogger(__name__)
 
@@ -282,39 +283,48 @@ def course_handler(request, course_key_string=None):
 # pylint: disable=unused-argument
 @login_required
 def course_insert_handler(request, course_key_string=None):
-    """
-    The restful handler for course specific requests.
-    It provides the course tree with the necessary information for identifying and labeling the parts. The root
-    will typically be a 'course' object but may not be especially as we support modules.
+    log.info("test in course_insert_handler")
+    repo = 'repo'
+    modules = ['lib-block-v1:IU+test+type@video+block@dc906f441f794edd9d906aeb8c0b2d29', 'lib-block-v1:IU+test+type@video+block@4da9dd97958648eaa6f77d963fffd146',
+		'lib-block-v1:IU+test+type@problem+block@e138b550fe1e47578b0e9e6959f827c0', 'lib-block-v1:IU+test+type@html+block@76cd38281da84d759500cd1cf934d34f']
+    #log.info(modules[2])
 
-    GET
-        html: return course listing page if not given a course id
-        html: return html page overview for the given course if given a course id
-        json: return json representing the course branch's index entry as well as dag w/ all of the children
-        replaced w/ json docs where each doc has {'_id': , 'display_name': , 'children': }
-    POST
-        json: create a course, return resulting json
-        descriptor (same as in GET course/...). Leaving off /branch/draft would imply create the course w/ default
-        branches. Cannot change the structure contents ('_id', 'display_name', 'children') but can change the
-        index entry.
-    PUT
-        json: update this course (index entry not xblock) such as repointing head, changing display name, org,
-        course, run. Return same json as above.
-    DELETE
-        json: delete this branch from this course (leaving off /branch/draft would imply delete the course)
-    """
-    log.info("test for course")
+    store = modulestore()
+    #log.info(request.user.id)
+    course_id = CourseKey.from_string(course_key_string)
+    #log.info(course_id)
+    #log.info(request)
+    course_name = str(course_id).split(":")
+    #log.info(course_name[1])
+    for course in store.get_courses():
+	#log.info(course.location)
+	if course_name[1] in str(course.location):
+	    #log.info("find string!")
+	    current_course_location = course.location
+	    break
+    log.info(current_course_location)
+    log.info(current_course_location.block_id)
+    #store.create_item(request.user.id, course_id, 'chapter')
+
+    new_section = create_xblock(str(current_course_location), request.user, 'chapter', 'Playlist')
+    log.info(new_section)
+    log.info(new_section.location)
+
+    new_subsection = create_xblock(str(new_section.location), request.user, 'sequential', 'Chosen Modules')
+    log.info(new_subsection)
+    log.info(new_subsection.location)
+
+    new_lesson = create_xblock(str(new_subsection.location), request.user, 'vertical', 'Module1')
+
+
+
     try:
         response_format = request.GET.get('format') or request.POST.get('format') or 'html'
-	log.info(response_format)
-	log.info(request.method)
         if response_format == 'json' or 'application/json' in request.META.get('HTTP_ACCEPT', 'application/json'):
             if request.method == 'GET':
                 course_key = CourseKey.from_string(course_key_string)
-		log.info(course_key)
                 with modulestore().bulk_operations(course_key):
                     course_module = get_course_and_check_access(course_key, request.user, depth=None)
-		    log.info(course_module)
                     return JsonResponse(_course_outline_json(request, course_module))
             elif request.method == 'POST':  # not sure if this is only post. If one will have ids, it goes after access
                 return _create_or_rerun_course(request)
