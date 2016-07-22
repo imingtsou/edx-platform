@@ -285,10 +285,23 @@ def course_handler(request, course_key_string=None):
 # pylint: disable=unused-argument
 @login_required
 def course_insert_handler(request, course_key_string=None):
-    log.info("test in course_insert_handler")
-    repo = 'repo'
-    modules = ['lib-block-v1:IU+test+type@video+block@dc906f441f794edd9d906aeb8c0b2d29', 'lib-block-v1:IU+test+type@video+block@4da9dd97958648eaa6f77d963fffd146',
-		'lib-block-v1:IU+test+type@problem+block@e138b550fe1e47578b0e9e6959f827c0', 'lib-block-v1:IU+test+type@html+block@76cd38281da84d759500cd1cf934d34f']
+    #log.info("test in course_insert_handler")
+
+    #log.info(request.GET['repo_name'])
+
+    repo = str(request.GET['repo_name'])
+    
+    #log.info(request.GET['count'])
+
+    modules = []
+
+    count = int(request.GET['count'])
+    for i in range(0,count):
+	#log.info(i)
+	#log.info(request.GET['list' + str(i)])
+	modules.append(str(request.GET['list' + str(i)]))
+
+    #log.info(modules)
 
     store = modulestore()
     course_id = CourseKey.from_string(course_key_string)

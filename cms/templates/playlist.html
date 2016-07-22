@@ -124,15 +124,38 @@
 			function moduleSubmit() {
 				var list = document.getElementById('module_list');
 				var insert_list = document.getElementById('module_chosen');
+				var repo_name = document.getElementById('libraries').value;
+				//alert(repo_name);
+				var post_name = document.createElement('input');
+				post_name.type = "hidden";
+				post_name.name = "repo_name";
+				post_name.value = repo_name;
+				insert_list.appendChild(post_name);
+				var count = 0;
 				for (var i = 0;i < list.length - 1;i++) {
 					if (list[i].checked == true) {
-						var newline = document.createElement('div');
-						newline.name = list[i].name;
+						count++;
+					}
+				}
+				//alert(count);
+				var post_count = document.createElement('input');
+				post_count.type = "hidden";
+				post_count.name = "count";
+				post_count.value = count;
+				insert_list.appendChild(post_count);
+				count = 0;
+				for (var i = 0;i < list.length - 1;i++) {
+					if (list[i].checked == true) {
+						var newline = document.createElement('input');
+						var show_name = list[i].name;
+						newline.type = "hidden";
+						newline.name = "list" + count;
 						newline.value = list[i].value;
 						insert_list.appendChild(newline);
-						insert_list.appendChild(document.createTextNode(newline.name));
+						insert_list.appendChild(document.createTextNode(show_name));
 						var br = document.createElement("br");
                                                 insert_list.appendChild(br);
+						count++;
 					}
 				}
 				var newbutton = document.createElement('input');
@@ -147,18 +170,8 @@
 	</p>
 	<p>
 		Chosen modules: <br />
-		<script>
-			function addToCourse() {
-				var url_string = document.getElementById('course_url_string').attributes["value"].value;
-				var view_button = document.getElementById('button_view');
-            			var link_button = document.createElement('input');
-				link_button.setAttribute("type","button");
-				link_button.setAttribute("value","View the Couse");
-				link_button.setAttribute("onClick","window.open('" + url_string + "')");
-            			view_button.appendChild(link_button);
-			}
 		</script>
-		<form id="module_chosen" method="GET" action="javascript:addToCourse();">
+		<form id="module_chosen" method="GET" action="${course_insert_url}">
 		</form>
 		<br />
 		<p id='button_view'>
