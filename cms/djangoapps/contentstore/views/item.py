@@ -627,6 +627,57 @@ def _create_item(request):
         {"locator": unicode(created_block.location), "courseKey": unicode(created_block.location.course_key)}
     )
 
+def move_item(parent_usage_key, target_usage_key, temp_usage_key, user):
+    #log.info("test from move_item")
+    store = modulestore()
+
+    target_xblock = store.get_item(target_usage_key)
+    temp_xblock = store.get_item(temp_usage_key)
+    #log.info(target_xblock)
+
+    dest_usage_key = temp_xblock.location.replace(name=uuid4().hex)
+    #log.info(dest_usage_key)
+
+    category = dest_usage_key.block_type
+    #log.info(category)
+
+    duplicate_metadata = {}
+    for field in target_xblock.fields.values():
+	if field.scope == Scope.settings and field.is_set_on(target_xblock):
+            duplicate_metadata[field.name] = field.read_from(target_xblock)
+    #log.info(duplicate_metadata)
+
+    asides_to_create = []
+    for aside in target_xblock.runtime.get_asides(target_xblock):
+        for field in aside.fields.values():
+            if field.scope in (Scope.settings, Scope.content,) and field.is_set_on(aside):
+                asides_to_create.append(aside)
+                break
+
+    for aside in asides_to_create:
+        for field in aside.fields.values():
+            if field.scope not in (Scope.settings, Scope.content,):
+                field.delete_from(aside)
+    #log.info(asides_to_create)
+
+    dest_module = store.create_item(
+        user.id,
+        dest_usage_key.course_key,
+        dest_usage_key.block_type,
+        block_id=dest_usage_key.block_id,
+        definition_data=target_xblock.get_explicitly_set_fields_by_scope(Scope.content),
+        metadata=duplicate_metadata,
+        runtime=target_xblock.runtime,
+        asides=asides_to_create
+    )
+
+    parent = store.get_item(parent_usage_key)
+    parent.children.append(dest_module.location)
+    store.update_item(parent, user.id)
+
+    _delete_item(temp_usage_key, user)
+
+    return dest_module.location
 
 def _duplicate_item(parent_usage_key, duplicate_source_usage_key, user, display_name=None):
     """

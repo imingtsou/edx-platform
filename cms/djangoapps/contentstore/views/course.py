@@ -101,6 +101,8 @@ from xmodule.modulestore.exceptions import ItemNotFoundError, DuplicateCourseErr
 from xmodule.tabs import CourseTab, CourseTabList, InvalidTabsException
 
 from contentstore.views.helpers import create_xblock
+from contentstore.views.item import move_item
+
 
 log = logging.getLogger(__name__)
 
@@ -333,16 +335,11 @@ def course_insert_handler(request, course_key_string=None):
 
 	#log.info(str(type(module_xblock)))
 
-	if str(type(module_xblock)) == '<class \'xblock.internal.VideoDescriptorWithMixins\'>':
-	    module_type = "video"
-
-	if str(type(module_xblock)) == '<class \'xblock.internal.CapaDescriptorWithMixins\'>':
-	    module_type = "problem"
-
-	if str(type(module_xblock)) == '<class \'xblock.internal.HtmlDescriptorWithMixins\'>':
-	    module_type = "html"
+	module_type = module_xblock.location.category
 
 	new_module = create_xblock(str(new_lesson.location), request.user, module_type, str(module_xblock.display_name))
+	move_item(new_lesson.location, module_xblock.location, new_module.location, request.user)
+
 	new_module = module_xblock
 	#log.info(type(new_module))
 	store.update_item(new_module, request.user)
