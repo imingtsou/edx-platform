@@ -538,7 +538,8 @@ def playlist_handler(request, course_key_string):
 	#log.info(library.children)
 	modules = [library.display_name]
 	for children in library.children:
-	    modules.append(str(children))
+	    display_name = store.get_item(children, 1).display_name
+	    modules.append(str(display_name) + "&" + str(children))
 	    #log.info(children)
 	libraries_modules.append(modules)
 

@@ -287,36 +287,67 @@ def course_insert_handler(request, course_key_string=None):
     repo = 'repo'
     modules = ['lib-block-v1:IU+test+type@video+block@dc906f441f794edd9d906aeb8c0b2d29', 'lib-block-v1:IU+test+type@video+block@4da9dd97958648eaa6f77d963fffd146',
 		'lib-block-v1:IU+test+type@problem+block@e138b550fe1e47578b0e9e6959f827c0', 'lib-block-v1:IU+test+type@html+block@76cd38281da84d759500cd1cf934d34f']
-    #log.info(modules[2])
 
     store = modulestore()
-    #log.info(request.user.id)
     course_id = CourseKey.from_string(course_key_string)
-    #log.info(course_id)
-    #log.info(request)
     course_name = str(course_id).split(":")
-    #log.info(course_name[1])
     for course in store.get_courses():
-	#log.info(course.location)
 	if course_name[1] in str(course.location):
-	    #log.info("find string!")
 	    current_course_location = course.location
 	    break
-    log.info(current_course_location)
-    log.info(current_course_location.block_id)
-    #store.create_item(request.user.id, course_id, 'chapter')
+    #log.info(current_course_location)
+    #log.info(current_course_location.block_id)
 
     new_section = create_xblock(str(current_course_location), request.user, 'chapter', 'Playlist')
-    log.info(new_section)
-    log.info(new_section.location)
+    #log.info(new_section)
+    #log.info(new_section.location)
 
     new_subsection = create_xblock(str(new_section.location), request.user, 'sequential', 'Chosen Modules')
-    log.info(new_subsection)
-    log.info(new_subsection.location)
+    #log.info(new_subsection)
+    #log.info(new_subsection.location)
 
-    new_lesson = create_xblock(str(new_subsection.location), request.user, 'vertical', 'Module1')
+    for library in store.get_libraries():
+	if library.display_name == repo:
+	    #log.info(library.children)
+	    current_library = library
+	    break
 
+    library_module_xblocks = []
+    for library_child in current_library.children:
+	#log.info(type(library_child))
+	#log.info(type(store.get_item(library_child, 1)))
+	library_module_xblocks.append(store.get_item(library_child, 1))
 
+    for module in modules:
+    	#new_lesson = create_xblock(str(new_subsection.location), request.user, 'vertical', str(module))
+	
+	for library_child in current_library.children:	
+	    #log.info(library_child)
+	    if str(module) == str(library_child):
+		#log.info("find!")
+		module_xblock = store.get_item(library_child, 1)
+		break
+	new_lesson = create_xblock(str(new_subsection.location), request.user, 'vertical', str(module_xblock.display_name))
+
+	#log.info(type(module_xblock))
+
+	#log.info(str(type(module_xblock)))
+
+	if str(type(module_xblock)) == '<class \'xblock.internal.VideoDescriptorWithMixins\'>':
+	    module_type = "video"
+
+	if str(type(module_xblock)) == '<class \'xblock.internal.CapaDescriptorWithMixins\'>':
+	    module_type = "problem"
+
+	if str(type(module_xblock)) == '<class \'xblock.internal.HtmlDescriptorWithMixins\'>':
+	    module_type = "html"
+
+	new_module = create_xblock(str(new_lesson.location), request.user, module_type, str(module_xblock.display_name))
+	new_module = module_xblock
+	#log.info(type(new_module))
+	store.update_item(new_module, request.user)
+
+    #log.info(CourseKey)
 
     try:
         response_format = request.GET.get('format') or request.POST.get('format') or 'html'

@@ -97,11 +97,13 @@
 					if (library == module_name[i][0]) {
 						for (var j = 1;j < module_name[i].length;j++) {
 							var newbox = document.createElement('input');
+							combine_name = module_name[i][j].split("\'");
+							display_name = combine_name[1].split("&");
 							newbox.type = 'checkbox';
-							newbox.name = 'module';
-							newbox.value = module_name[i][j];
+							newbox.name = display_name[0];
+							newbox.value = display_name[1];
 							list.appendChild(newbox);
-							list.appendChild(document.createTextNode(' ' + module_name[i][j]));
+							list.appendChild(document.createTextNode(' ' + display_name[0]));
 							var br = document.createElement("br");
 							list.appendChild(br);
 						}
@@ -125,10 +127,10 @@
 				for (var i = 0;i < list.length - 1;i++) {
 					if (list[i].checked == true) {
 						var newline = document.createElement('div');
-						newline.name = 'chosen_module';
+						newline.name = list[i].name;
 						newline.value = list[i].value;
 						insert_list.appendChild(newline);
-						insert_list.appendChild(document.createTextNode(newline.value));
+						insert_list.appendChild(document.createTextNode(newline.name));
 						var br = document.createElement("br");
                                                 insert_list.appendChild(br);
 					}
